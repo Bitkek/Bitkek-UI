@@ -16,5 +16,15 @@ namespace Bitkek_UI
         {
             InitializeComponent();
         }
+
+        private void newWalletToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MainWindow_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
