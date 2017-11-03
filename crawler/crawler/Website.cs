@@ -59,6 +59,7 @@ namespace crawler
                 try
                 {
                     Uri suburi = new Uri(root, enumerate.Current.Attributes["href"].Value);
+                    if (!suburi.AbsoluteUri.StartsWith("http")) continue;
                     if (suburi.AbsoluteUri == root.AbsoluteUri) continue;
                     if (root.Host == suburi.Host) pages.Add(new Page(suburi));
                     else sites.Add(new Website(new Uri("http://" + suburi.Host)));
