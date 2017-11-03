@@ -16,8 +16,8 @@ namespace crawler
 
         static void Main(string[] args)
         {
-            Website web = new Website(new Uri("http://pr0gramm.com/static/"));
-            for (int i = 0; i < 1; i++)(new Thread(new ThreadStart(threadfunc))).Start();
+            Website web = new Website(new Uri("http://xhamster.com"));
+            for (int i = 0; i < 5; i++)(new Thread(new ThreadStart(threadfunc))).Start();
             scrape(web);
             
             while (true) ;

@@ -22,7 +22,11 @@ namespace crawler
 
         private HtmlDocument loadFrom(Uri site) {
             HtmlWeb doc = new HtmlWeb();
-            return doc.Load(site.AbsoluteUri);
+            doc.BrowserTimeout = new TimeSpan(10000);
+            HtmlDocument d = new HtmlDocument();
+            try { d = doc.Load(site.AbsoluteUri); }
+            catch { }
+            return d ;
         }
 
         public List<Page> getPages() {
