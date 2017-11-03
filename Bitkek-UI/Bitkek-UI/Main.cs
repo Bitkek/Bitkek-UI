@@ -9,7 +9,8 @@ namespace Bitkek_UI
     public class main
     {
         static int Main(String[] args) {
-            (new MainWindow()).ShowDialog();
+            MainWindow z = new MainWindow();
+            z.ShowDialog();
             return 1;
         }
     }
