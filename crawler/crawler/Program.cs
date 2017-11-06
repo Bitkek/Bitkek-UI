@@ -19,11 +19,11 @@ namespace crawler
 
         static void Main(string[] args)
         {
-            Page web = new Page(new Uri("http://draw.io/"));
+            Page web = new Page(new Uri("http://jesb.us"));
             qeuedPages.Enqueue(web);
 
             (new Thread(new ThreadStart(delegate { websiteWriteThread(); }))).Start();
-            for(int i=0;i<5;i++)(new Thread(new ThreadStart(delegate { PageDNThread(); }))).Start();
+            for(int i=0;i<20;i++)(new Thread(new ThreadStart(delegate { PageDNThread(); }))).Start();
             while (true) ;
         }
 
@@ -31,7 +31,6 @@ namespace crawler
             while (true) {
                 if (queue.Count != 0) {
                     Uri deq = queue.Dequeue();
-                    
                     writeInWebsitesFoundList(deq);
                 }
             }
@@ -42,7 +41,6 @@ namespace crawler
                 if (qeuedPages.Count == 0) continue;
                 Page p = null;
                 while (!qeuedPages.TryDequeue(out p)) ;
-                if (p == null) continue;
 
                 foreach (Website we in p.getSites())
                 {
@@ -51,6 +49,7 @@ namespace crawler
                         Console.WriteLine("Website found: "+ we.getBaseUri().Host);
                         websites.Add(we.getBaseUri().Host);
                         qeuedPages.Enqueue(new Page(new Uri("http://"+we.getBaseUri().Host)));
+                        queue.Enqueue(we.getBaseUri());
                     }
                 }
 
@@ -62,8 +61,6 @@ namespace crawler
                         qeuedPages.Enqueue(pe);
                     }
                 }
-
-                
             }
         }
 
@@ -72,5 +69,6 @@ namespace crawler
             t.WriteLine(site.Host);
             t.Close();
         }
+
     }
 }
