@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace crawler
 {
@@ -13,15 +14,16 @@ namespace crawler
     {
         static Queue<Uri> queue = new Queue<Uri>();
         static List<String> websites = new List<String>();
-        static HashSet<String> pages = new HashSet<String>();
-        static Mutex thred = new Mutex();
+        static List<String> pages = new List<String>();
+        static ConcurrentQueue<Page> qeuedPages = new ConcurrentQueue<Page>();
 
         static void Main(string[] args)
         {
-            Website web = new Website(new Uri("http://jesb.us/"));
+            Page web = new Page(new Uri("http://draw.io/"));
+            qeuedPages.Enqueue(web);
+
             (new Thread(new ThreadStart(delegate { websiteWriteThread(); }))).Start();
-            scrape(web);
-            
+            for(int i=0;i<5;i++)(new Thread(new ThreadStart(delegate { PageDNThread(); }))).Start();
             while (true) ;
         }
 
@@ -35,34 +37,33 @@ namespace crawler
             }
         }
 
-        static bool bareContains(List<String> c,string co)
-        {
-            foreach (string t in c) {
-                if (t.Equals(co)) return true;
-            }
-            return false;
-        }
+        static void PageDNThread() {
+            while (true) {
+                if (qeuedPages.Count == 0) continue;
+                Page p = null;
+                while (!qeuedPages.TryDequeue(out p)) ;
+                if (p == null) continue;
 
-        static void scrape(Website p) {
-            WebClient webs = new WebClient();
-            webs.Proxy = null;
+                foreach (Website we in p.getSites())
+                {
+                    if (!websites.Contains(we.getBaseUri().Host))
+                    {
+                        Console.WriteLine("Website found: "+ we.getBaseUri().Host);
+                        websites.Add(we.getBaseUri().Host);
+                        qeuedPages.Enqueue(new Page(new Uri("http://"+we.getBaseUri().Host)));
+                    }
+                }
 
-            
+                foreach (Page pe in p.getPages())
+                {
+                    if (!pages.Contains(pe.getBaseUri().AbsoluteUri))
+                    {
+                        pages.Add(pe.getBaseUri().AbsoluteUri);
+                        qeuedPages.Enqueue(pe);
+                    }
+                }
 
-            foreach (Website ppp in p.getSites()) {
-
-                    if (websites.Contains(ppp.getBaseUri().Host)) continue;
-                    Console.WriteLine("New website found and scrape started: "+ppp.getBaseUri().Host);
-                    websites.Add(ppp.getBaseUri().Host);
-                    queue.Enqueue(ppp.getBaseUri());
-
-                    (new Thread(new ThreadStart(delegate { scrape(new Website(new Uri("http://" + ppp.getBaseUri().Host))); }))).Start();
-            }
-
-            foreach (Page pp in p.getPages()) {
-                if (pages.Contains(pp.getBaseUri().AbsoluteUri)) continue;
-                pages.Add(pp.getBaseUri().AbsoluteUri);
-                scrape(pp);
+                
             }
         }
 
