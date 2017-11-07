@@ -35,7 +35,6 @@ namespace crawler
             datapage.createTables();
             dataimage.createTables();
             Page web = new Page(new Uri("http://jesb.us"));
-            
             qeuedPages.Enqueue(web);
             
             for(int i=0;i<20;i++)(new Thread(new ThreadStart(delegate { PageDNThread(); }))).Start();

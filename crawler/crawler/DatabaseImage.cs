@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace crawler
 {
@@ -25,7 +26,7 @@ namespace crawler
 
         public bool doImageExist(HtmlImage web)
         {
-            string query = "SELECT EXISTS(SELECT * FROM Images WHERE url = \"" + web.url.AbsoluteUri + "\");";
+            string query = "SELECT EXISTS(SELECT * FROM Images WHERE url = \"" + HttpUtility.HtmlEncode(web.url.AbsoluteUri) + "\");";
             MySqlCommand cmd = new MySqlCommand(query, conn.getConnection());
             MySqlDataReader re = cmd.ExecuteReader();
             re.Read();
@@ -38,9 +39,9 @@ namespace crawler
         {
             DateTime t = DateTime.Now;
             string query = "INSERT Images (url, description, time) VALUES " +
-                "(\"" + web.url.AbsoluteUri + "\", " +
-                "\"" + web.description + "\"," +
-                "\"" + t.ToString("yyyy-MM-dd H:mm:ss") + "\");";
+                "(\"" + HttpUtility.HtmlEncode(web.url.AbsoluteUri) + "\", " +
+                "\"" + HttpUtility.HtmlEncode(web.description) + "\"," +
+                "\"" + t.ToString("yyyy-MM-dd H:mm:ss") + "\");" ;
 
             MySqlCommand cmd = new MySqlCommand(query, conn.getConnection());
             cmd.ExecuteNonQuery();

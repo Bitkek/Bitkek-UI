@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MySql.Data;
 using MySql.Data.MySqlClient;
+using System.Web;
 
 namespace crawler
 {
@@ -38,9 +39,9 @@ namespace crawler
             string query = "INSERT Websites (domain, time, title, description, keywords) VALUES " +
                 "(\"" + web.getHost() +"\", " +
                 "\""+ t.ToString("yyyy-MM-dd H:mm:ss") +"\", " +
-                "\""+web.getTitle()+"\", " +
-                "\""+web.getDescription()+"\", " +
-                "\""+web.getTags()+"\");";
+                "\""+ HttpUtility.HtmlEncode(web.getTitle())+"\", " +
+                "\""+ HttpUtility.HtmlEncode(web.getDescription())+"\", " +
+                "\"" + HttpUtility.HtmlEncode ( web.getTags())+"\");";
 
             MySqlCommand cmd = new MySqlCommand(query, conn.getConnection());
             cmd.ExecuteNonQuery();

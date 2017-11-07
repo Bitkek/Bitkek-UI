@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace crawler
 {
@@ -24,7 +25,7 @@ namespace crawler
 
         public bool doPageExist(Page web)
         {
-            string query = "SELECT EXISTS(SELECT * FROM Pages WHERE url = \"" + web.getPagePath() + "\");";
+            string query = "SELECT EXISTS(SELECT * FROM Pages WHERE url = \"" + HttpUtility.HtmlEncode(web.getPagePath()) + "\");";
             MySqlCommand cmd = new MySqlCommand(query, conn.getConnection());
             MySqlDataReader re = cmd.ExecuteReader();
             re.Read();
@@ -37,7 +38,7 @@ namespace crawler
         {
             DateTime t = DateTime.Now;
             string query = "INSERT Pages (url, time) VALUES " +
-                "(\"" + web.getPagePath() + "\", " +
+                "(\"" + HttpUtility.HtmlEncode(web.getPagePath()) + "\", " +
                 "\"" + t.ToString("yyyy-MM-dd H:mm:ss") + "\");";
 
             MySqlCommand cmd = new MySqlCommand(query, conn.getConnection());
