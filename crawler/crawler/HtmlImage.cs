@@ -8,10 +8,13 @@ namespace crawler
 {
     class HtmlImage
     {
-        private string description = String.Empty;
-        private Uri url = null;
-        private string name = String.Empty;
+        public string description = String.Empty;
+        public Uri url = null;
 
+        public HtmlImage(Uri uri, String description){
+            url = uri;
+            this.description = description;
+        }
 
     }
 }

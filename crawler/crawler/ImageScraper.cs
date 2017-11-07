@@ -11,7 +11,7 @@ namespace crawler
     {
         private HtmlDocument document = null;
         private Uri root;
-        private List<Uri> imagesUri = new List<Uri>();
+        private List<HtmlImage> images = new List<HtmlImage>();
 
         public ImageScraper(Uri baseuri, HtmlDocument doc) {
             document = doc;
@@ -24,16 +24,18 @@ namespace crawler
             IEnumerator<HtmlNode> enumerate = document.DocumentNode.Descendants("img").GetEnumerator();
             while (enumerate.MoveNext())
             {
+                
                 try
                 {
-                    imagesUri.Add(new Uri(root, enumerate.Current.Attributes["src"].Value));
+                    if (!enumerate.Current.Attributes["src"].Value.StartsWith("http")) continue;
+                    images.Add(new HtmlImage(new Uri(enumerate.Current.Attributes["src"].Value), enumerate.Current.Attributes["alt"].Value));
                 }
                 catch { }
             }
         }
 
-        public List<Uri> getImagesUri() {
-            return imagesUri;
+        public List<HtmlImage> getImages() {
+            return images;
         }
     }
 }

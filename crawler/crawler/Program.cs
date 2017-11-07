@@ -12,62 +12,80 @@ namespace crawler
 {
     class Program
     {
-        static Queue<Uri> queue = new Queue<Uri>();
-        static List<String> websites = new List<String>();
+        static Queue<Website> queue = new Queue<Website>();
         static List<String> pages = new List<String>();
         static ConcurrentQueue<Page> qeuedPages = new ConcurrentQueue<Page>();
+        static DatabaseConnection dataconnweb = null;
+        static DatabaseWebsite dataweb = null;
+        static DatabasePage datapage = null;
+        static DatabaseImage dataimage = null;
+        static Mutex PageMutex = new Mutex();
+        static Mutex WebsiteMutex = new Mutex();
+        static Mutex ImageMutex = new Mutex();
 
         static void Main(string[] args)
         {
+            dataconnweb = new DatabaseConnection();
+            dataweb = new DatabaseWebsite(dataconnweb);
+            DatabaseConnection dataconnpage = new DatabaseConnection();
+            DatabaseConnection dataconnimage = new DatabaseConnection();
+            dataimage = new DatabaseImage(dataconnimage);
+            datapage = new DatabasePage(dataconnpage);
+            dataweb.createTables();
+            datapage.createTables();
+            dataimage.createTables();
             Page web = new Page(new Uri("http://jesb.us"));
+            
             qeuedPages.Enqueue(web);
-
-            (new Thread(new ThreadStart(delegate { websiteWriteThread(); }))).Start();
+            
             for(int i=0;i<20;i++)(new Thread(new ThreadStart(delegate { PageDNThread(); }))).Start();
             while (true) ;
         }
 
-        static void websiteWriteThread() {
-            while (true) {
-                if (queue.Count != 0) {
-                    Uri deq = queue.Dequeue();
-                    writeInWebsitesFoundList(deq);
-                }
-            }
-        }
 
         static void PageDNThread() {
             while (true) {
+                Thread.Sleep(1);
                 if (qeuedPages.Count == 0) continue;
                 Page p = null;
                 while (!qeuedPages.TryDequeue(out p)) ;
 
                 foreach (Website we in p.getSites())
                 {
-                    if (!websites.Contains(we.getBaseUri().Host))
+                    
+                    WebsiteMutex.WaitOne();
+                    bool exists = dataweb.doWebsiteExist(we);
+                    
+                    if (!exists)
                     {
                         Console.WriteLine("Website found: "+ we.getBaseUri().Host);
-                        websites.Add(we.getBaseUri().Host);
-                        qeuedPages.Enqueue(new Page(new Uri("http://"+we.getBaseUri().Host)));
-                        queue.Enqueue(we.getBaseUri());
+                        we.loadNodes();
+                        dataweb.entryWbsite((Website)we);
+                        qeuedPages.Enqueue(new Page(new Uri("http://" + we.getBaseUri().Host)));
                     }
+                    WebsiteMutex.ReleaseMutex();
                 }
 
                 foreach (Page pe in p.getPages())
                 {
-                    if (!pages.Contains(pe.getBaseUri().AbsoluteUri))
+                    PageMutex.WaitOne();
+                    if (!datapage.doPageExist(pe))
                     {
-                        pages.Add(pe.getBaseUri().AbsoluteUri);
+                        datapage.entryPage(pe);
                         qeuedPages.Enqueue(pe);
                     }
+                    PageMutex.ReleaseMutex();
+                }
+
+                ImageScraper img = new ImageScraper(p.getBaseUri(),p.getDocument());
+                foreach (HtmlImage im in img.getImages()) {
+                    ImageMutex.WaitOne();
+                    if (!dataimage.doImageExist(im)) {
+                        dataimage.entryImage(im);
+                    }
+                    ImageMutex.ReleaseMutex();
                 }
             }
-        }
-
-        static void writeInWebsitesFoundList(Uri site) {
-            StreamWriter t = new StreamWriter("websites.txt",true);
-            t.WriteLine(site.Host);
-            t.Close();
         }
 
     }
